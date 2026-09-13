@@ -4,6 +4,7 @@ import '../models/book.dart';
 import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import 'add_edit_book_screen.dart';
+import 'manage_users_screen.dart';
 
 class AdminHomeScreen extends StatelessWidget {
   const AdminHomeScreen({super.key});
@@ -12,17 +13,27 @@ class AdminHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.lightBlue,
-      appBar: AppBar(
-        title: const Text('Manage Books'),
-        backgroundColor: AppColors.aqua,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => AuthService().signOut(),
-          ),
-        ],
-      ),
+        appBar: AppBar(
+          title: const Text('Manage Books'),
+          backgroundColor: AppColors.aqua,
+          foregroundColor: Colors.white,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.people_outline),
+              tooltip: 'Manage Users',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ManageUsersScreen()),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () => AuthService().signOut(),
+            ),
+          ],
+        ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.pink,
         onPressed: () {
