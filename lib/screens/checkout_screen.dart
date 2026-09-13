@@ -37,25 +37,59 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         throw Exception('You must be logged in to place an order.');
       }
 
-      final orderItems = cart.items.values.map((item) {
-        return {
-          'bookId': item.book.id,
-          'title': item.book.title,
-          'quantity': item.quantity,
-          'unitPrice': item.book.isOnSale ? item.book.discountPrice : item.book.price,
-        };
-      }).toList();
+      final firestore = FirebaseFirestore.instance;
+      final cartItemsSnapshot = cart.items.values.toList();
 
-      await FirebaseFirestore.instance.collection('orders').add({
-        'userId': user.uid,
-        'userEmail': user.email,
-        'items': orderItems,
-        'total': cart.total,
-        'status': 'pending',
-        'customerName': _nameController.text.trim(),
-        'address': _addressController.text.trim(),
-        'phone': _phoneController.text.trim(),
-        'timestamp': FieldValue.serverTimestamp(),
+      // Use a transaction so stock is checked and deducted safely,
+      // even if multiple customers order the same book at the same time.
+      await firestore.runTransaction((transaction) async {
+        final bookRefs = cartItemsSnapshot
+            .map((item) => firestore.collection('books').doc(item.book.id))
+            .toList();
+
+        final bookSnapshots = await Future.wait(
+          bookRefs.map((ref) => transaction.get(ref)),
+        );
+
+        // Check stock for every item first
+        for (var i = 0; i < cartItemsSnapshot.length; i++) {
+          final item = cartItemsSnapshot[i];
+          final currentStock = (bookSnapshots[i].data()?['stock'] ?? 0) as int;
+          if (currentStock < item.quantity) {
+            throw Exception(
+                'Only $currentStock copy/copies of "${item.book.title}" left in stock.');
+          }
+        }
+
+        // All good - deduct stock for each book
+        for (var i = 0; i < cartItemsSnapshot.length; i++) {
+          final item = cartItemsSnapshot[i];
+          final currentStock = (bookSnapshots[i].data()?['stock'] ?? 0) as int;
+          transaction.update(bookRefs[i], {'stock': currentStock - item.quantity});
+        }
+
+        // Create the order
+        final orderItems = cartItemsSnapshot.map((item) {
+          return {
+            'bookId': item.book.id,
+            'title': item.book.title,
+            'quantity': item.quantity,
+            'unitPrice': item.book.isOnSale ? item.book.discountPrice : item.book.price,
+          };
+        }).toList();
+
+        final orderRef = firestore.collection('orders').doc();
+        transaction.set(orderRef, {
+          'userId': user.uid,
+          'userEmail': user.email,
+          'items': orderItems,
+          'total': cart.total,
+          'status': 'pending',
+          'customerName': _nameController.text.trim(),
+          'address': _addressController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'timestamp': FieldValue.serverTimestamp(),
+        });
       });
 
       cart.clearCart();
@@ -82,8 +116,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     } catch (e) {
       setState(() => _isPlacingOrder = false);
       if (!mounted) return;
+      final message = e.toString().replaceFirst('Exception: ', '');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to place order: ${e.toString()}')),
+        SnackBar(content: Text(message)),
       );
     }
   }

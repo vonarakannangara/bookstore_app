@@ -4,7 +4,7 @@ import '../models/book.dart';
 import '../theme/app_colors.dart';
 
 class AddEditBookScreen extends StatefulWidget {
-  final Book? book; // null means "Add new", non-null means "Edit"
+  final Book? book;
   const AddEditBookScreen({super.key, this.book});
 
   @override
@@ -20,6 +20,7 @@ class _AddEditBookScreenState extends State<AddEditBookScreen> {
   late final TextEditingController _imageUrlController;
   late final TextEditingController _genreController;
   late final TextEditingController _discountPriceController;
+  late final TextEditingController _stockController;
   bool _isOnSale = false;
   bool _isBestSeller = false;
   bool _isNewArrival = false;
@@ -35,8 +36,9 @@ class _AddEditBookScreenState extends State<AddEditBookScreen> {
     _descriptionController = TextEditingController(text: b?.description ?? '');
     _imageUrlController = TextEditingController(text: b?.imageUrl ?? '');
     _genreController = TextEditingController(text: b?.genre ?? '');
-    _discountPriceController =
-        TextEditingController(text: b != null && b.discountPrice > 0 ? b.discountPrice.toString() : '');
+    _discountPriceController = TextEditingController(
+        text: b != null && b.discountPrice > 0 ? b.discountPrice.toString() : '');
+    _stockController = TextEditingController(text: b != null ? b.stock.toString() : '');
     _isOnSale = b?.isOnSale ?? false;
     _isBestSeller = b?.isBestSeller ?? false;
     _isNewArrival = b?.isNewArrival ?? false;
@@ -51,6 +53,7 @@ class _AddEditBookScreenState extends State<AddEditBookScreen> {
     _imageUrlController.dispose();
     _genreController.dispose();
     _discountPriceController.dispose();
+    _stockController.dispose();
     super.dispose();
   }
 
@@ -72,6 +75,7 @@ class _AddEditBookScreenState extends State<AddEditBookScreen> {
           : 0.0,
       'isBestSeller': _isBestSeller,
       'isNewArrival': _isNewArrival,
+      'stock': int.parse(_stockController.text.trim()),
     };
 
     try {
@@ -145,6 +149,24 @@ class _AddEditBookScreenState extends State<AddEditBookScreen> {
                   if (v == null || v.trim().isEmpty) return 'Price is required';
                   final parsed = double.tryParse(v.trim());
                   if (parsed == null || parsed <= 0) return 'Enter a valid price greater than 0';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _stockController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Stock Quantity',
+                  prefixIcon: const Icon(Icons.inventory_2_outlined),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Stock quantity is required';
+                  final parsed = int.tryParse(v.trim());
+                  if (parsed == null || parsed < 0) {
+                    return 'Enter a valid whole number (0 or more)';
+                  }
                   return null;
                 },
               ),

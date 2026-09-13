@@ -10,6 +10,7 @@ class Book {
   final double discountPrice;
   final bool isBestSeller;
   final bool isNewArrival;
+  final int stock;
 
   Book({
     required this.id,
@@ -23,6 +24,7 @@ class Book {
     required this.discountPrice,
     required this.isBestSeller,
     required this.isNewArrival,
+    required this.stock,
   });
 
   factory Book.fromMap(String id, Map<String, dynamic> data) {
@@ -38,6 +40,9 @@ class Book {
       discountPrice: (data['discountPrice'] ?? 0).toDouble(),
       isBestSeller: data['isBestSeller'] ?? false,
       isNewArrival: data['isNewArrival'] ?? false,
+      stock: (data['stock'] ?? 0) is int
+          ? data['stock'] ?? 0
+          : (data['stock'] as num).toInt(),
     );
   }
 
@@ -53,6 +58,7 @@ class Book {
       'discountPrice': discountPrice,
       'isBestSeller': isBestSeller,
       'isNewArrival': isNewArrival,
+      'stock': stock,
     };
   }
 }

@@ -7,7 +7,16 @@ class AuthService {
 
   User? get currentUser => _auth.currentUser;
 
-  Future<String?> signUp(String email, String password) async {
+  Future<String?> signUp(
+      String email,
+      String password, {
+        required String name,
+        required String phone,
+        required String gender,
+        required String dob,
+        required String nic,
+        required String address,
+      }) async {
     try {
       final cred = await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
@@ -16,6 +25,12 @@ class AuthService {
       await _db.collection('users').doc(cred.user!.uid).set({
         'email': email.trim(),
         'role': 'customer',
+        'name': name.trim(),
+        'phone': phone.trim(),
+        'gender': gender,
+        'dob': dob,
+        'nic': nic.trim(),
+        'address': address.trim(),
       });
       return null;
     } on FirebaseAuthException catch (e) {
@@ -49,6 +64,12 @@ class AuthService {
         await _db.collection('users').doc(uid).set({
           'email': email,
           'role': 'customer',
+          'name': '',
+          'phone': '',
+          'gender': '',
+          'dob': '',
+          'nic': '',
+          'address': '',
         });
         return 'customer';
       }

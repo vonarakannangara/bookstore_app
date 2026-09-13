@@ -56,6 +56,8 @@ class AdminHomeScreen extends StatelessWidget {
             itemCount: books.length,
             itemBuilder: (context, index) {
               final book = books[index];
+              final lowStock = book.stock <= 3;
+
               return Card(
                 margin: const EdgeInsets.only(bottom: 10),
                 child: ListTile(
@@ -75,7 +77,32 @@ class AdminHomeScreen extends StatelessWidget {
                     ),
                   ),
                   title: Text(book.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  subtitle: Text('${book.author} • Rs. ${book.price.toStringAsFixed(2)}'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${book.author} • Rs. ${book.price.toStringAsFixed(2)}'),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.inventory_2_outlined,
+                            size: 14,
+                            color: lowStock ? Colors.redAccent : Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            book.stock == 0 ? 'Out of stock' : '${book.stock} in stock',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: lowStock ? FontWeight.bold : FontWeight.normal,
+                              color: lowStock ? Colors.redAccent : Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  isThreeLine: true,
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

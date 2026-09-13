@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/book.dart';
-import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import 'book_detail_screen.dart';
 
@@ -27,12 +26,6 @@ class _BookListScreenState extends State<BookListScreen> {
         title: const Text('Browse Books'),
         backgroundColor: AppColors.aqua,
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => AuthService().signOut(),
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -229,6 +222,27 @@ class _BookListScreenState extends State<BookListScreen> {
                                           color: AppColors.aqua),
                                     ),
                                   ),
+                                  if (book.isOnSale)
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          10, 6, 10, 0),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.pink,
+                                          borderRadius:
+                                          BorderRadius.circular(10),
+                                        ),
+                                        child: const Text(
+                                          'SALE',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ),
                                   Padding(
                                     padding: const EdgeInsets.fromLTRB(
                                         10, 8, 10, 4),
@@ -256,7 +270,34 @@ class _BookListScreenState extends State<BookListScreen> {
                                   Padding(
                                     padding: const EdgeInsets.fromLTRB(
                                         10, 0, 10, 10),
-                                    child: Text(
+                                    child: book.isOnSale
+                                        ? Row(
+                                      children: [
+                                        Text(
+                                          'Rs. ${book.price.toStringAsFixed(0)}',
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.grey,
+                                            decoration:
+                                            TextDecoration.lineThrough,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Flexible(
+                                          child: Text(
+                                            'Rs. ${book.discountPrice.toStringAsFixed(0)}',
+                                            overflow:
+                                            TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontWeight:
+                                              FontWeight.bold,
+                                              color: AppColors.pink,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                        : Text(
                                       'Rs. ${book.price.toStringAsFixed(2)}',
                                       style: const TextStyle(
                                           fontWeight: FontWeight.bold,

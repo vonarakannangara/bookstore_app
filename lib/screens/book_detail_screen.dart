@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../models/book.dart';
-import '../theme/app_colors.dart';
 import 'package:provider/provider.dart';
+import '../models/book.dart';
 import '../providers/cart_provider.dart';
+import '../theme/app_colors.dart';
 
 class BookDetailScreen extends StatelessWidget {
   final Book book;
@@ -10,6 +10,8 @@ class BookDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final inStock = book.stock > 0;
+
     return Scaffold(
       backgroundColor: AppColors.lightBlue,
       appBar: AppBar(
@@ -95,6 +97,25 @@ class BookDetailScreen extends StatelessWidget {
               style: const TextStyle(
                   fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.darkBlue),
             ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(
+                  inStock ? Icons.check_circle_outline : Icons.remove_circle_outline,
+                  size: 18,
+                  color: inStock ? Colors.green : Colors.redAccent,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  inStock ? '${book.stock} in stock' : 'Out of stock',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: inStock ? Colors.green : Colors.redAccent,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
             const Text('Description',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
@@ -106,18 +127,20 @@ class BookDetailScreen extends StatelessWidget {
               height: 48,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.aqua,
+                  backgroundColor: inStock ? AppColors.aqua : Colors.grey,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                onPressed: () {
+                onPressed: inStock
+                    ? () {
                   context.read<CartProvider>().addToCart(book);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('${book.title} added to cart')),
                   );
-                },
+                }
+                    : null,
                 icon: const Icon(Icons.add_shopping_cart),
-                label: const Text('Add to Cart'),
+                label: Text(inStock ? 'Add to Cart' : 'Out of Stock'),
               ),
             ),
           ],
